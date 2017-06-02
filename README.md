@@ -127,7 +127,8 @@ Recalibrated reads are collected in a new bam file. The new bam file is now read
 
 
 ## Somatic mutation calling (BAM file -> VCF file)
-Since we do not have time and capacity to run a whole sample during our exercises we will call somatic mutations on a single chromosome of your choice. Simply choose chromosome name before runnig mutect (e.g. CHR=chr15)
+Since we do not have time and capacity to run a whole sample during our exercises we will call somatic mutations on a single chromosome of your choice. Simply choose chromosome name before runnig mutect (e.g. CHR=chr15).
+MuTect2 is a somatic mutation caller developed by Broad Institute. MuTect2 is a somatic SNP and indel caller that combines the DREAM challenge-winning somatic genotyping engine of the original MuTect [(Cibulskis et al., 2013)](http://www.nature.com/nbt/journal/v31/n3/full/nbt.2514.html) with the assembly-based machinery of [HaplotypeCaller](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php). The basic operation of MuTect2 proceeds similarly to that of the HaplotypeCaller. To learn more about Mutect2 follow this link [MuTect2](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php)
 
         ### Set chromosome:
         CHR=TYPE_CHROMOSOME_HERE
