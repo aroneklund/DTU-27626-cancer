@@ -120,10 +120,10 @@ Recalibrated reads are collected in a new bam file. The new bam file is now read
         ### Run Base Recalibrator - parallelize by using -nct option
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar\
             -T PrintReads -nct 4 -R $HREFF -I patient3_n.sorted.dedup.bam -BQSR patient3_n.recal.table \
-            -o $patient_3_n.final.bam
+            -o patient_3_n.final.bam
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
             -T PrintReads -nct 4 -R $HREFF -I patient3_t.sorted.dedup.bam -BQSR patient3_t.recal.table \
-            -o $patient_3_t.final.bam
+            -o patient_3_t.final.bam
 
 
 ## Somatic mutation calling (BAM file -> VCF file)
@@ -132,11 +132,20 @@ Since we do not have time and capacity to run a whole sample during our exercise
         ### Set chromosome:
         CHR=TYPE_CHROMOSOME_HERE
         ### Run Mutect2
-        time java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 
+        time java -Xmx4G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 
             -jar ${GATKROOT}/GenomeAnalysisTK.jar -T MuTect2 -R $HREFF --dbsnp $SREFF --cosmic $cosmicREFF \
-            -I:tumor $tumor -I:normal $normal -o $out_dir/${fnam}.chr${CHR}.mutect2.vcf -L chr${CHR}
+            -I:tumor patient_3_t.final.bam -I:normal patient_3_n.final.bam -o patient_3_t.${CHR}.mutect2.vcf -L ${CHR}
+        ### To run a whole genome simply do not use the -L option.
+
+## Inference of tissue of origin
+
+        ### .....
 
 ## Inference of copy number profile
 
+        ### .....
+
 ## Data visualization
+
+        ### .....
 
