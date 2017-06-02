@@ -74,14 +74,16 @@ Use bwa mem for aligning reads. Tumor sample and normal separately.
         samtools sort -@ 3 patient3_t.bam -o patient3_t.sorted.bam
  
 3. Step 3 - Mark duplicates with picard tools MarkDuplicates. 
-Mark PCR duplicates so that they will not intrduce bias in the subsequent analysis.
+Mark PCR duplicates so that they will not introduce false positives and bias in the subsequent analysis.
 
         PICARD=/home/ngscourse/stud059/test_server1/somatic_calling/picard-2.jar
         mkdir tmp
         java -Xmx5G -Xms1024M  -XX:+UseParallelGC -XX:ParallelGCThreads=6 -jar $PICARD MarkDuplicates\
-            INPUT=patient3_n.sorted.bam OUTPUT=patient3_n.sorted.dedup.bam METRICS_FILE=patient3_n.metrics.txt  TMP_DIR=./tmp
+            INPUT=patient3_n.sorted.bam OUTPUT=patient3_n.sorted.dedup.bam METRICS_FILE=patient3_n.metrics.txt \
+            TMP_DIR=./tmp
         java -Xmx10G -Xms1024M  -XX:+UseParallelGC -XX:ParallelGCThreads=8 -jar $PICARD MarkDuplicates\
-            INPUT=patient3_t.sorted.bam OUTPUT=patient3_t.sorted.dedup.bam METRICS_FILE=patient3_t.metrics.txt  TMP_DIR=./tmp
+            INPUT=patient3_t.sorted.bam OUTPUT=patient3_t.sorted.dedup.bam METRICS_FILE=patient3_t.metrics.txt \
+            TMP_DIR=./tmp
         
 
 4. Step 4 - Index bam.
@@ -92,43 +94,47 @@ Mark PCR duplicates so that they will not intrduce bias in the subsequent analys
 5. Step 5 - BaseRecalibrator - Part 1
 Recalibrate base qualities. Each base comes out of sequencer with certain quality call. These qualities are readjusted by BaseRecalibrator after [TO BE FINISHED]
 
-        # Run Base Recalibrator 1 - parallelize by using -nct option
-        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar -T BaseRecalibrator \
-        -nct 4 -R $HREFF -I patient3_n.sorted.dedup.bam -knownSites $SREFF -knownSites $IREFF -o patient3_n.recal.table
-        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar -T BaseRecalibrator \
-        -nct 4 -R $HREFF -I patient3_t.sorted.dedup.bam -knownSites $SREFF -knownSites $IREFF -o patient3_t.recal.table
+        ### Run Base Recalibrator 1 - parallelize by using -nct option
+        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
+            -T BaseRecalibrator -nct 4 -R $HREFF -I patient3_n.sorted.dedup.bam -knownSites $SREFF \
+            -knownSites $IREFF -o patient3_n.recal.table
+        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
+            -T BaseRecalibrator -nct 4 -R $HREFF -I patient3_t.sorted.dedup.bam -knownSites $SREFF \
+            -knownSites $IREFF -o patient3_t.recal.table
       
         
 6. Step 6 - BaseRecalibrator - Part 2.
 
-        # Run Base Recalibrator 2 - parallelize by using -nct option
-        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar -T BaseRecalibrator \
-        -nct 4 -R $HREFF -I patient3_n.sorted.dedup.bam -knownSites $SREFF -knownSites $IREFF -BQSR patient3_n.recal.table \
-        -o patient3_n.post_recal_data.table
-        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar -T BaseRecalibrator \
-        -nct 4 -R $HREFF -I patient3_t.sorted.dedup.bam -knownSites $SREFF -knownSites $IREFF -BQSR patient3_t.recal.table \
-        -o patient3_t.post_recal_data.table
+        ### Run Base Recalibrator 2 - parallelize by using -nct option
+        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
+            -T BaseRecalibrator -nct 4 -R $HREFF -I patient3_n.sorted.dedup.bam -knownSites $SREFF \
+            -knownSites $IREFF -BQSR patient3_n.recal.table -o patient3_n.post_recal_data.table
+        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
+            -T BaseRecalibrator -nct 4 -R $HREFF -I patient3_t.sorted.dedup.bam -knownSites $SREFF \
+            -knownSites $IREFF -BQSR patient3_t.recal.table -o patient3_t.post_recal_data.table
         
         
 6. Step 6 - PrintReads.
 Recalibrated reads are collected in a new bam file. The new bam file is now ready to be processed with MuTect2 - mutation calling program.
 
-        # Run Base Recalibrator - parallelize by using -nct option
-        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar -T PrintReads \
-        -nct 4 -R $HREFF -I patient3_n.sorted.dedup.bam -BQSR patient3_n.recal.table -o $patient_3_n.final.bam
-        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar -T PrintReads \
-        -nct 4 -R $HREFF -I patient3_t.sorted.dedup.bam -BQSR patient3_t.recal.table -o $patient_3_t.final.bam
+        ### Run Base Recalibrator - parallelize by using -nct option
+        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar\
+            -T PrintReads -nct 4 -R $HREFF -I patient3_n.sorted.dedup.bam -BQSR patient3_n.recal.table \
+            -o $patient_3_n.final.bam
+        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
+            -T PrintReads -nct 4 -R $HREFF -I patient3_t.sorted.dedup.bam -BQSR patient3_t.recal.table \
+            -o $patient_3_t.final.bam
 
 
 ## Somatic mutation calling (BAM file -> VCF file)
 Since we do not have time and capacity to run a whole sample during our exercises we will call somatic mutations on a single chromosome of your choice. Simply choose chromosome name before runnig mutect (e.g. CHR=chr15)
 
-        #Set chromosome:
+        ### Set chromosome:
         CHR=TYPE_CHROMOSOME_HERE
-        #GATKROOT=/home/ngscourse/stud059/test_server1/snp_calling
-        GATKROOT=/home/ngscourse/stud059/test_server1/snp_calling
-        time java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 -jar ${GATKROOT}/GenomeAnalysisTK.jar -T MuTect2 \
-        -R $HREFF --dbsnp $SREFF --cosmic $cosmicREFF -I:tumor $tumor -I:normal $normal -o $out_dir/${fnam}.chr${CHR}.mutect2.vcf -L chr${CHR}
+        ### Run Mutect2
+        time java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 
+            -jar ${GATKROOT}/GenomeAnalysisTK.jar -T MuTect2 -R $HREFF --dbsnp $SREFF --cosmic $cosmicREFF \
+            -I:tumor $tumor -I:normal $normal -o $out_dir/${fnam}.chr${CHR}.mutect2.vcf -L chr${CHR}
 
 ## Inference of copy number profile
 
