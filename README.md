@@ -87,14 +87,14 @@ Set up new variables for the newly created files. I assume the validated and fil
         f2t_val=TCRBOA2-T-WEX.read2.fastq.bz2_val_2.fq.gz
 
 
-### 2.1 Alignment and preprocessing (FASTQ file -> BAM file -> preprocessed BAM file)
+### 2.1 Alignment and preprocessing before mutation calling.
 
 
 1. Step 1 - (PLEASE DO NOT RUN)
 
 Use bwa mem for aligning reads. Tumor sample and normal separately.
 
-Importantly and Read Group ID line (@RG line) needst to be defined by the user. Mutect2 and other programs in the pipeline below depend on information in this line. Here is one way of constructing it. Optionally, it can have more information then provided below. Please see the [SAM format specification](http://www.samformat.info) if you want to know more.
+Importantly, a Read Group ID line (@RG line) needst to be defined by the user. Mutect2 and other programs in the pipeline below depend on information in this line. Here is one way of constructing it. Optionally, it can have more information then provided below. Please see the [SAM format specification](http://www.samformat.info) if you want to know more.
 
         ### @RG ID # read group ID, needs to be unique for fastq file due to downstream processing, takes\
         preferrence when used by some programs
@@ -173,6 +173,7 @@ Recalibrated reads are collected in a new bam file. After this step, the resulti
 ## Somatic mutation calling (BAM file -> VCF file)
 Since we do not have time and capacity to run a whole sample during our exercises we will call somatic mutations on a single chromosome of your choice. Simply choose chromosome name before runnig mutect (e.g. CHR=chr15).
 MuTect2 is a somatic mutation caller developed by Broad Institute. MuTect2 is a somatic SNP and indel caller that combines the DREAM challenge-winning somatic genotyping engine of the original MuTect [(Cibulskis et al., 2013)](http://www.nature.com/nbt/journal/v31/n3/full/nbt.2514.html) with the assembly-based machinery of [HaplotypeCaller](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php). The basic operation of MuTect2 proceeds similarly to that of the HaplotypeCaller. To learn more about Mutect2 follow this link [MuTect2](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php)
+Mutect2 is computationally intensive so it is recommended to parallelize if possible. One way to achieve it is to split processes by chromosomes.
 
         ### Set chromosome:
         CHR=TYPE_CHROMOSOME_HERE
