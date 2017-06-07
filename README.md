@@ -97,11 +97,13 @@ Use bwa mem for aligning reads. Tumor sample and normal separately.
 
 Importantly and Read Group ID line (@RG line) needst to be defined by the user. Mutect2 and other programs in the pipeline below depend on information in this line. Here is one way of constructing it. Optionally, it can have more information then provided below. Please see the [SAM format specification](http://www.samformat.info) if you want to know more.
 
-        ### @RG ID # read group ID, needs to be unique for fastq file due to downstream processing, takes preferrence when used by some programs
+        ### @RG ID # read group ID, needs to be unique for fastq file due to downstream processing, takes\
+        preferrence when used by some programs
         ### @RG SM # sample ID
         ### @RG PL # platform name
         ### @RG LB # library name
-        ### @RG PU # Platform unit, needs to be unique for fastq file due to downstream processing, takes preferrence when used by some programs
+        ### @RG PU # Platform unit, needs to be unique for fastq file due to downstream processing, takes\
+        preferrence when used by some programs
         ### Let's create an @RG line that we will use when runnig bwa mem alinment
         ReadGoupID_N="\"@RG\tID:TCRBOA2-N-WEX\tSM:TCRBOA2-N-WEX\tPL:ILLUMINA\tLB:libN\tPU:TCRBOA2-N-WEX"\"
         ReadGoupID_T="\"@RG\tID:TCRBOA2-T-WEX\tSM:TCRBOA2-T-WEX\tPL:ILLUMINA\tLB:libT\tPU:TCRBOA2-T-WEX"\"
