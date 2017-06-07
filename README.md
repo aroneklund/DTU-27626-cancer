@@ -1,11 +1,11 @@
 # DTU-27626-cancer
 Cancer-related exercises for [DTU course 27626](http://www.cbs.dtu.dk/courses/27626/programme.php) 
 
-*WORK IN PROGRESS*
+Marcin Krzystanek and Aron Eklund
  
 These exercises will guide you through all steps starting from raw data (FASTQ files) and resulting in a list of somatic mutations point mutations and copy number changes.  Also, we will perform some analysis (in R) of the resulting data.
 
-Estimated time:  XX hours
+Estimated time:  2 hours
 
 ## Prerequisites
 
@@ -48,8 +48,30 @@ Q1: Is your data single or paired end? What type would you prefer for cancer DNA
 
 ## 2. Data Pre-processing
 
-### 2.1 Read quality trimming and FastQC report.
         ### Define bash variables for brevity:
+        f1n=/home/27626/exercises/cancer/TCRBOA2-N-WEX.read1.fastq.bz2
+        f2n=/home/27626/exercises/cancer/TCRBOA2-N-WEX.read2.fastq.bz2
+        f1t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read1.fastq.bz2
+        f2t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read2.fastq.bz2
+        HREFF=/home/27626/exercises/cancer/human_GRCh38/GCA_000001405.15_GRCh38_full_analysis_set
+        IREFF=/home/27626/exercises/cancer/human_GRCh38/Indel_refs/mills_gold.b38.vcf
+        SREFF=/home/27626/exercises/cancer/human_GRCh38/SNP_refs/1000G.snps.b38.vcf
+        cosmicREFF=/home/27626/exercises/cancer/human_GRCh38/cosmic/CosmicCodingMuts_chr_sorted.vcf
+        GATK=/home/27626/exercises/cancer/programs/GenomeAnalysisTK.jar
+        PICARD=/home/27626/exercises/cancer/progrpicard-2.jar
+        TRIM_GALORE=/home/27626/exercises/cancer/programs/trim_galore
+        outdir=`pwd`
+        args="'--outdir ${outdir}'"
+
+
+
+### 2.1 Read quality trimming and FastQC report using [trim_galore](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/).
+
+        ### Trim reads with trim_galre wrapper
+        trim_galore --fastqc --fastqc_args $args --gzip --quality 20 --trim-n --length 50\
+        --trim1 --output_dir $outdir --paired $f1n $f2n
+        trim_galore --fastqc --fastqc_args $args --gzip --quality 20 --trim-n --length 50\
+        --trim1 --output_dir $outdir --paired $f1n $f2n
 
 
 
@@ -60,17 +82,6 @@ Q1: Is your data single or paired end? What type would you prefer for cancer DNA
 
 Use bwa mem for aligning reads. Tumor sample and normal separately.
  
-        ### Define bash variables for brevity:
-        f1n="/home/ngscourse/stud059/test_server1/somatic_calling/TCRBOA3-N-WEX.read1.fastq.bz2"
-        f2n="/home/ngscourse/stud059/test_server1/somatic_calling/TCRBOA3-N-WEX.read2.fastq.bz2"
-        f1t=TCRBOA3-T-WEX.read1.fastq.bz2
-        f2t=TCRBOA3-T-WEX.read2.fastq.bz2
-        HREFF="/home/ngscourse/stud059/test_server1/somatic_calling/human_GRCh38/GCA_000001405.15_GRCh38_full_analysis_set"
-        IREFF="/home/ngscourse/stud059/test_server1/somatic_calling/human_GRCh38/Indel_refs/mills_gold.b38.vcf"
-        SREFF="/home/ngscourse/stud059/test_server1/somatic_calling/human_GRCh38/SNP_refs/1000G.snps.b38.vcf"
-        cosmicREFF="/home/ngscourse/stud059/test_server1/somatic_calling/human_GRCh38/cosmic/CosmicCodingMuts_chr_sorted.vcf"
-        GATKROOT=/home/ngscourse/stud059/test_server1/snp_calling
-        PICARD=/home/ngscourse/stud059/test_server1/somatic_calling/picard-2.jar
 
 Importantly and Read Group ID line (@RG line) needst to be defined by the user. Mutect2 and other programs in the pipeline below depend on information in this line. Here is one way of constructing it. Optionally, it can have more information then provided below. Please see the [SAM format specification](http://www.samformat.info) if you want to know more.
 
@@ -116,10 +127,10 @@ Mark PCR duplicates so that they will not introduce false positives and bias in 
 Recalibrate base qualities. Each base comes out of sequencer with certain quality call. These qualities are readjusted by BaseRecalibrator after [TO BE FINISHED]
 
         ### Run Base Recalibrator 1 - parallelize by using -nct option
-        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
+        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATK}/GenomeAnalysisTK.jar \
             -T BaseRecalibrator -nct 4 -R $HREFF -I patient3_n.sorted.dedup.bam -knownSites $SREFF \
             -knownSites $IREFF -o patient3_n.recal.table
-        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
+        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATK}/GenomeAnalysisTK.jar \
             -T BaseRecalibrator -nct 4 -R $HREFF -I patient3_t.sorted.dedup.bam -knownSites $SREFF \
             -knownSites $IREFF -o patient3_t.recal.table
       
@@ -127,7 +138,7 @@ Recalibrate base qualities. Each base comes out of sequencer with certain qualit
 6. Step 6 - BaseRecalibrator - Part 2.
 
         ### Run Base Recalibrator 2 - parallelize by using -nct option
-        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
+        java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATK}/GenomeAnalysisTK.jar \
             -T BaseRecalibrator -nct 4 -R $HREFF -I patient3_n.sorted.dedup.bam -knownSites $SREFF \
             -knownSites $IREFF -BQSR patient3_n.recal.table -o patient3_n.post_recal_data.table
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar ${GATKROOT}/GenomeAnalysisTK.jar \
