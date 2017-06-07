@@ -54,6 +54,7 @@ Q1: Is your data single or paired end? What type would you prefer for cancer DNA
         f1t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read1.fastq.bz2
         f2t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read2.fastq.bz2
         HREFF=/home/27626/exercises/cancer/human_GRCh38/GCA_000001405.15_GRCh38_full_analysis_set
+        FREFF="/home/projects/pr_46630/data/references/human_GRCh38/GCA_000001405.15_GRCh38_full_analysis_set.fa" 
         IREFF=/home/27626/exercises/cancer/human_GRCh38/Indel_refs/mills_gold.b38.vcf
         SREFF=/home/27626/exercises/cancer/human_GRCh38/SNP_refs/1000G.snps.b38.vcf
         cosmicREFF=/home/27626/exercises/cancer/human_GRCh38/cosmic/CosmicCodingMuts_chr_sorted.vcf
@@ -69,11 +70,20 @@ Q1: Is your data single or paired end? What type would you prefer for cancer DNA
         args="'--outdir ${outdir}'"
         
         ### Trim reads with trim_galore wrapper, produce both fastqc and trimming reports
-        trim_galore --fastqc --fastqc_args $args --gzip --quality 20 --trim-n --length 50\
+        $TRIM_GALORE --fastqc --fastqc_args $args --gzip --quality 20 --trim-n --length 50\
         --trim1 --output_dir $outdir --paired $f1n $f2n
-        trim_galore --fastqc --fastqc_args $args --gzip --quality 20 --trim-n --length 50\
-        --trim1 --output_dir $outdir --paired $f1n $f2n
+        $TRIM_GALORE --fastqc --fastqc_args $args --gzip --quality 20 --trim-n --length 50\
+        --trim1 --output_dir $outdir --paired $f1t $f2t
 
+Q2: What does --quality 20 argument mean? Get help by running:
+        
+        $TRIM_GALORE --help
+
+Set up new variables for the newly created files:
+$f1n=/home/27626/exercises/cancer/TCRBOA2-N-WEX.read1.fastq.bz2_val_1.fq.gz
+$f2n=/home/27626/exercises/cancer/TCRBOA2-N-WEX.read2.fastq.bz2_val_2.fq.gz
+$f1t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read1.fastq.bz2_val_1.fq.gz
+$f2t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read2.fastq.bz2_val_2.fq.gz
 
 
 ### 2.1 Cleanup and alignment (FASTQ file -> BAM file)
@@ -96,9 +106,9 @@ Importantly and Read Group ID line (@RG line) needst to be defined by the user. 
         ReadGoupID_T="\"@RG\tID:TCRBOA2-T-WEX\tSM:TCRBOA2-T-WEX\tPL:ILLUMINA\tLB:libT\tPU:TCRBOA2-T-WEX"\"
 
         ### Run bwa mem
-        bwa mem -M -t 4 -R $ReadGoupID_N $HREFF <(bzcat $f1n) <(bzcat $f2n) \
+        bwa mem -M -t 4 -R $ReadGoupID_N $HREFF $f1n $f2n \
             | samtools view -Sb -@ 1 - > patient3_n.bam 
-        bwa mem -M -t 4 -R $ReadGoupID_T $HREFF <(bzcat $f2t) <(bzcat $f2t) \
+        bwa mem -M -t 4 -R $ReadGoupID_T $HREFF $f2t $f2t \
             | samtools view -Sb -@ 1 - > patient3_t.bam
 
 2. Step 2 - Sort bam files. 
