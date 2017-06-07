@@ -79,7 +79,7 @@ Q2: What does --quality 20 argument mean? Get help by running:
         
         $TRIM_GALORE --help
 
-Set up new variables for the newly created files. I assume the validated and filtered files were created in your working directory.
+Set up new variables for the newly created files. I assume the validated and filtered files were created in your working directory (for me this is /home/27626/exercises/cancer/ so you can find these files there if you need them).
 
         f1n_val=TCRBOA2-N-WEX.read1.fastq.bz2_val_1.fq.gz
         f2n_val=TCRBOA2-N-WEX.read2.fastq.bz2_val_2.fq.gz
@@ -87,7 +87,7 @@ Set up new variables for the newly created files. I assume the validated and fil
         f2t_val=TCRBOA2-T-WEX.read2.fastq.bz2_val_2.fq.gz
 
 
-### 2.1 Alignment and preprocessing before mutation calling.
+### 2.2 Alignment and preprocessing before mutation calling.
 
 
 1. Step 1 - (PLEASE DO NOT RUN)
@@ -136,7 +136,7 @@ Mark PCR duplicates so that they will not introduce false positives and bias in 
         samtools index patient3_t.sorted.dedup.bam
 
 5. Step 5 - BaseRecalibrator - Part 1
-Recalibrate base qualities. Each base comes out of sequencer with certain quality call. These qualities are readjusted by BaseRecalibrator after [TO BE FINISHED]
+Recalibrate base qualities. Each base in each sequence read comes out of sequencer with certain quality score. Depending on machine used for sequrencing these scores are subjected to various sources of systematic technical error. Base quality score recalibration (BQSR) works by applying machine learning to model these errors empirically and adjust the quality scores accordingly. Here is more information on [BSQR](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_bqsr_BaseRecalibrator.php) from authors of the software. 
 
         ### Run Base Recalibrator 1 - parallelize by using -nct option
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK \
@@ -158,7 +158,7 @@ Recalibrate base qualities. Each base comes out of sequencer with certain qualit
             -knownSites $IREFF -BQSR patient3_t.recal.table -o patient3_t.post_recal_data.table
         
         
-6. Step 6 - PrintReads.
+7. Step 7 - PrintReads.
 Recalibrated reads are collected in a new bam file. After this step, the resulting bam file is ready to be processed with MuTect2 - mutation calling program.
 
         ### Run Base Recalibrator - parallelize by using -nct option
