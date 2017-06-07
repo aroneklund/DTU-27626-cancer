@@ -87,7 +87,7 @@ Set up new variables for the newly created files. I assume the validated and fil
         f2t_val=TCRBOA2-T-WEX.read2.fastq.bz2_val_2.fq.gz
 
 
-### 2.1 Cleanup and alignment (FASTQ file -> BAM file)
+### 2.1 Alignment and preprocessing (FASTQ file -> BAM file -> preprocessed BAM file)
 
 
 1. Step 1 - (PLEASE DO NOT RUN)
