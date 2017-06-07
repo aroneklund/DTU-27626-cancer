@@ -35,23 +35,32 @@ Please note the Conditions of Data Use:
 > * This data set is not intended for direct profit of anyone who receives it and may not be resold.
 > * Users are free to use the data in scientific publications if the providers of the data (Texas Cancer Research Biobank and Baylor College of Medicine Human Genome Sequencing Center) are properly acknowledged.
 
-The raw data files are located on the server at /xxx/xxx/xxx
+The raw data files are located on the server at /home/27626/exercises/cancer
+
+Important: since data is vast and our resources are limited we will not run the alignment and full mutation calling. We do provide the code needed 
 
 ### 1.1 Take a first look at the data
 
+        ls /home/27626/exercises/cancer
+        bzcat /home/27626/exercises/cancer/TCRBOA2-N-WEX.read2.fastq.bz2 | head
 
-
+Q1: Is your data single or paired end? What type would you prefer for cancer DNA sequencing and why?
 
 ## 2. Data Pre-processing
 
+### 2.1 Read quality trimming and FastQC report.
+        ### Define bash variables for brevity:
+
+
+
 ### 2.1 Cleanup and alignment (FASTQ file -> BAM file)
 
-1. Step 1 - (PLEASE DO NOT RUN AND GO DIRECTLY TO STEP 2)
+
+1. Step 1 - (PLEASE DO NOT RUN)
+
 Use bwa mem for aligning reads. Tumor sample and normal separately.
  
-        ### Define variables for convenience
-        ReadGoupID_N="@RG\tID:TCRBOA3-N-WEX\tSM:TCRBOA3\tPL:ILLUMINA\tLB:libN\tPU:TCRBOA3-N-WEX"
-        ReadGoupID_T="@RG\tID:TCRBOA3-T-WEX\tSM:TCRBOA3\tPL:ILLUMINA\tLB:libT\tPU:TCRBOA3-T-WEX"
+        ### Define bash variables for brevity:
         f1n="/home/ngscourse/stud059/test_server1/somatic_calling/TCRBOA3-N-WEX.read1.fastq.bz2"
         f2n="/home/ngscourse/stud059/test_server1/somatic_calling/TCRBOA3-N-WEX.read2.fastq.bz2"
         f1t=TCRBOA3-T-WEX.read1.fastq.bz2
@@ -61,7 +70,19 @@ Use bwa mem for aligning reads. Tumor sample and normal separately.
         SREFF="/home/ngscourse/stud059/test_server1/somatic_calling/human_GRCh38/SNP_refs/1000G.snps.b38.vcf"
         cosmicREFF="/home/ngscourse/stud059/test_server1/somatic_calling/human_GRCh38/cosmic/CosmicCodingMuts_chr_sorted.vcf"
         GATKROOT=/home/ngscourse/stud059/test_server1/snp_calling
-        
+        PICARD=/home/ngscourse/stud059/test_server1/somatic_calling/picard-2.jar
+
+Importantly and Read Group ID line (@RG line) needst to be defined by the user. Mutect2 and other programs in the pipeline below depend on information in this line. Here is one way of constructing it. Optionally, it can have more information then provided below. Please see the [SAM format specification](http://www.samformat.info) if you want to know more.
+
+        ### @RG ID # read group ID, needs to be unique for fastq file due to downstream processing, takes preferrence when used by some programs
+        ### @RG SM # sample ID
+        ### @RG PL # platform name
+        ### @RG LB # library name
+        ### @RG PU # Platform unit, needs to be unique for fastq file due to downstream processing, takes preferrence when used by some programs
+        ### Let's create an @RG line that we will use when runnig bwa mem alinment
+        ReadGoupID_N="\"@RG\tID:TCRBOA2-N-WEX\tSM:TCRBOA2-N-WEX\tPL:ILLUMINA\tLB:libN\tPU:TCRBOA2-N-WEX"\"
+        ReadGoupID_T="\"@RG\tID:TCRBOA2-T-WEX\tSM:TCRBOA2-T-WEX\tPL:ILLUMINA\tLB:libT\tPU:TCRBOA2-T-WEX"\"
+
         ### Run bwa mem
         bwa mem -M -t 4 -R $ReadGoupID_N $HREFF <(bzcat $f1n) <(bzcat $f2n) \
             | samtools view -Sb -@ 1 - > patient3_n.bam 
@@ -76,7 +97,7 @@ Use bwa mem for aligning reads. Tumor sample and normal separately.
 3. Step 3 - Mark duplicates with picard tools MarkDuplicates. 
 Mark PCR duplicates so that they will not introduce false positives and bias in the subsequent analysis.
 
-        PICARD=/home/ngscourse/stud059/test_server1/somatic_calling/picard-2.jar
+        
         mkdir tmp
         java -Xmx5G -Xms1024M  -XX:+UseParallelGC -XX:ParallelGCThreads=6 -jar $PICARD MarkDuplicates\
             INPUT=patient3_n.sorted.bam OUTPUT=patient3_n.sorted.dedup.bam METRICS_FILE=patient3_n.metrics.txt \
