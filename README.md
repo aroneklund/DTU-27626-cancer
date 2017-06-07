@@ -171,16 +171,19 @@ Recalibrated reads are collected in a new bam file. After this step, the resulti
 
 
 ## Somatic mutation calling (BAM file -> VCF file)
-Since we do not have time and capacity to run a whole sample during our exercises we will call somatic mutations on a single chromosome of your choice. Simply choose chromosome name before runnig mutect (e.g. CHR=chr15).
+Since we do not have time and capacity to run a whole sample during our exercises we will call somatic mutations at chromosome 1 from 1.000.000th to 2.000.000th base pair.
 MuTect2 is a somatic mutation caller developed by Broad Institute. MuTect2 is a somatic SNP and indel caller that combines the DREAM challenge-winning somatic genotyping engine of the original MuTect [(Cibulskis et al., 2013)](http://www.nature.com/nbt/journal/v31/n3/full/nbt.2514.html) with the assembly-based machinery of [HaplotypeCaller](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php). The basic operation of MuTect2 proceeds similarly to that of the HaplotypeCaller. To learn more about Mutect2 follow this link [MuTect2](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php)
 Mutect2 is computationally intensive so it is recommended to parallelize if possible. One way to achieve it is to split processes by chromosomes.
 
-        ### Set chromosome:
-        CHR=TYPE_CHROMOSOME_HERE
+        ### Set chromosome and location:
+        CHR_LOC=chr1:1000000-2000000
+        ### Use pre-processed bam files:
+        fbn=/home/27626/exercises/cancer/patient_3_n.final.bam
+        fbt=/home/27626/exercises/cancer/patient_3_t.final.bam
         ### Run Mutect2
-        java -Xmx4G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 -jar $GATK -T MuTect2\
-            -R $FREFF --dbsnp $SREFF --cosmic $cosmicREFF -I:tumor patient_3_t.final.bam\
-            -I:normal patient_3_n.final.bam -o patient_3_t.${CHR}.mutect2.vcf -L ${CHR}
+        java -Xmx4G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 -jar $GATK -T MuTect2 \
+            -R $FREFF --dbsnp $SREFF --cosmic $cosmicREFF -I:tumor $fbt \
+            -I:normal $fbn -o patient_3_t.${CHR_LOC}.mutect2.vcf -L $CHR_LOC
         ### To run a whole genome simply do not use the -L option.
 
 ## Inference of tissue of origin
