@@ -61,13 +61,14 @@ Q1: Is your data single or paired end? What type would you prefer for cancer DNA
         PICARD=/home/27626/exercises/cancer/progrpicard-2.jar
         TRIM_GALORE=/home/27626/exercises/cancer/programs/trim_galore
         outdir=`pwd`
-        args="'--outdir ${outdir}'"
-
 
 
 ### 2.1 Read quality trimming and FastQC report using [trim_galore](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/).
 
-        ### Trim reads with trim_galre wrapper
+        ### Arguments to be passed to FastQC
+        args="'--outdir ${outdir}'"
+        
+        ### Trim reads with trim_galore wrapper, produce both fastqc and trimming reports
         trim_galore --fastqc --fastqc_args $args --gzip --quality 20 --trim-n --length 50\
         --trim1 --output_dir $outdir --paired $f1n $f2n
         trim_galore --fastqc --fastqc_args $args --gzip --quality 20 --trim-n --length 50\
