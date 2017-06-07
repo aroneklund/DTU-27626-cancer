@@ -79,11 +79,12 @@ Q2: What does --quality 20 argument mean? Get help by running:
         
         $TRIM_GALORE --help
 
-Set up new variables for the newly created files:
-$f1n=/home/27626/exercises/cancer/TCRBOA2-N-WEX.read1.fastq.bz2_val_1.fq.gz
-$f2n=/home/27626/exercises/cancer/TCRBOA2-N-WEX.read2.fastq.bz2_val_2.fq.gz
-$f1t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read1.fastq.bz2_val_1.fq.gz
-$f2t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read2.fastq.bz2_val_2.fq.gz
+Set up new variables for the newly created files. I assume the validated and filtered files were created in your working directory.
+
+        f1n_val=TCRBOA2-N-WEX.read1.fastq.bz2_val_1.fq.gz
+        f2n_val=TCRBOA2-N-WEX.read2.fastq.bz2_val_2.fq.gz
+        f1t_val=TCRBOA2-T-WEX.read1.fastq.bz2_val_1.fq.gz
+        f2t_val=TCRBOA2-T-WEX.read2.fastq.bz2_val_2.fq.gz
 
 
 ### 2.1 Cleanup and alignment (FASTQ file -> BAM file)
@@ -106,9 +107,9 @@ Importantly and Read Group ID line (@RG line) needst to be defined by the user. 
         ReadGoupID_T="\"@RG\tID:TCRBOA2-T-WEX\tSM:TCRBOA2-T-WEX\tPL:ILLUMINA\tLB:libT\tPU:TCRBOA2-T-WEX"\"
 
         ### Run bwa mem
-        bwa mem -M -t 4 -R $ReadGoupID_N $HREFF $f1n $f2n \
+        bwa mem -M -t 4 -R $ReadGoupID_N $HREFF $f1n_val $f2n_val \
             | samtools view -Sb -@ 1 - > patient3_n.bam 
-        bwa mem -M -t 4 -R $ReadGoupID_T $HREFF $f2t $f2t \
+        bwa mem -M -t 4 -R $ReadGoupID_T $HREFF $f2t_val $f2t_val \
             | samtools view -Sb -@ 1 - > patient3_t.bam
 
 2. Step 2 - Sort bam files. 
