@@ -99,7 +99,7 @@ Importantly and Read Group ID line (@RG line) needst to be defined by the user. 
 
         ### @RG ID # read group ID, needs to be unique for fastq file due to downstream processing, takes\
         preferrence when used by some programs
-        ### @RG SM # sample ID
+        ### @RG SM # sample ID, unique for each tumor and normal sample, not to be confused with patient ID
         ### @RG PL # platform name
         ### @RG LB # library name
         ### @RG PU # Platform unit, needs to be unique for fastq file due to downstream processing, takes\
