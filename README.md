@@ -54,7 +54,7 @@ Q1: Is your data single or paired end? What type would you prefer for cancer DNA
         f1t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read1.fastq.bz2
         f2t=/home/27626/exercises/cancer/TCRBOA2-T-WEX.read2.fastq.bz2
         HREFF=/home/27626/exercises/cancer/human_GRCh38/GCA_000001405.15_GRCh38_full_analysis_set
-        FREFF="/home/projects/pr_46630/data/references/human_GRCh38/GCA_000001405.15_GRCh38_full_analysis_set.fa" 
+        FREFF=/home/27626/exercises/cancer/human_GRCh38/GCA_000001405.15_GRCh38_full_analysis_set.fa 
         IREFF=/home/27626/exercises/cancer/human_GRCh38/Indel_refs/mills_gold.b38.vcf
         SREFF=/home/27626/exercises/cancer/human_GRCh38/SNP_refs/1000G.snps.b38.vcf
         cosmicREFF=/home/27626/exercises/cancer/human_GRCh38/cosmic/CosmicCodingMuts_chr_sorted.vcf
