@@ -195,7 +195,7 @@ Take a look at the VCF file. Unlike HoaplotypeCaller MuTect2 applies a range of 
 You should see this line:
 "chr1	50973993	rs746646631	C	T	.	PASS	DB;ECNT=1;HCNT=2;MAX_ED=.;MIN_ED=.;NLOD=33.99;TLOD=7.29	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:QSS:REF_F1R2:REF_F2R1	0/1:129,6:0.044:3:3:0.500:3973,169:66:63	0/0:132,0:0.00:0:0:.:4093,0:75:57"
 
-Explanation of each part of the line above is in the header of the file (use less command to look at it). Importantly, the column starting with 0/0 refers to the normal sample while the one beginning with 0/1 refers to the tumor. After genotype (GT) we have allelic depth (AD) hich is "129,6" (i.e. 126 and 6 for the reference and mutant allele respectively). Then comes allelic frequency which is a fraction of the mutant allele out of all aligned bases in this position.
+Explanation of each part of the line above is in the header of the VCF file (use "less" command to look at it). Importantly, column starting with 0/0 refers to the normal sample while column beginning with 0/1 refers to the tumor. After genotype (GT) we have allelic depth (AD) which is "129,6" (i.e. 126 and 6 for the reference and mutant allele respectively). Then comes allelic frequency which is a fraction of the mutant allele out of all aligned bases in this position. For more information about MuTect2 output go to [MuTect2](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php).
 
 Q3: Try to search [dbSNP](https://www.ncbi.nlm.nih.gov/snp) for rs746646631. What gene does it belong to? Is this mutation protein-chainging?
 
