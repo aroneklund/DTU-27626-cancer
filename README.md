@@ -2,8 +2,15 @@
 Cancer-related exercises for [DTU course 27626](http://www.cbs.dtu.dk/courses/27626/programme.php) 
 
 Marcin Krzystanek and Aron Eklund
- 
-These exercises will guide you through all steps starting from raw data (FASTQ files) and resulting in a list of somatic mutations point mutations and copy number changes.  Also, we will perform some analysis (in R) of the resulting data.
+
+**WORK IN PROGRESS**
+
+**NOT FINISHED YET**
+
+
+These exercises will guide you through all steps starting from raw data (FASTQ files)
+and resulting in a list of somatic point mutations and a copy number profile.
+Also, we will perform some analysis (in R) of the resulting data.
 
 Estimated time:  2 hours
 
@@ -18,11 +25,13 @@ These exercises are tested with:
 * R v. 3.4.0
 
 
-## The data
+## About the data
 
 You will analyze whole-exome sequencing data from a pancreatic tumor and matched normal tissue.
 
-The data used in this exercise has been released for scientific and educational use by the [Texas Cancer Research Biobank](http://txcrb.org/data.html) and is fully described in [this paper](https://www.nature.com/articles/sdata201610).
+The data used in this exercise has been released for scientific and educational use by the
+[Texas Cancer Research Biobank](http://txcrb.org/data.html) and is fully described in 
+[this paper](https://www.nature.com/articles/sdata201610).
 
 Please note the Conditions of Data Use:
 
@@ -35,18 +44,29 @@ Please note the Conditions of Data Use:
 > * This data set is not intended for direct profit of anyone who receives it and may not be resold.
 > * Users are free to use the data in scientific publications if the providers of the data (Texas Cancer Research Biobank and Baylor College of Medicine Human Genome Sequencing Center) are properly acknowledged.
 
-The raw data files are located on the server at /home/27626/exercises/cancer
+The raw data files are located on the server at `/home/27626/exercises/cancer`
 
-Important: since data is vast and our resources are limited we will not run the alignment and full mutation calling. We do provide the code needed 
+## Somatic point mutation exercise
 
-### 1.1 Take a first look at the data
+**Important**: since the full procedure takes a long time, we will **not** ask you
+to perform the full alignment and full mutation calling. However, for reference, 
+we provide the code needed for the full analysis. Thus, you can use this code later
+in the course project or in your own work should you work with cancer patient DNA
+sequencing data.
+
+
+### PART 1. Raw reads: inspection, QC, cleanup
+
+#### 1.1 - Take a first look at the data
 
         ls /home/27626/exercises/cancer
         bzcat /home/27626/exercises/cancer/TCRBOA2-N-WEX.read2.fastq.bz2 | head
 
-Q1: Is your data single or paired end? What type would you prefer for cancer DNA sequencing and why?
+Q1: How long are the reads? Is your data single or paired end? 
+What type would you prefer for cancer DNA sequencing, and why?
 
-## 2. Data Pre-processing
+
+#### 1.2 - Define some bash variables
 
         ### Define bash variables for brevity:
         f1n=/home/27626/exercises/cancer/TCRBOA2-N-WEX.read1.fastq.bz2
@@ -59,14 +79,15 @@ Q1: Is your data single or paired end? What type would you prefer for cancer DNA
         SREFF=/home/27626/exercises/cancer/human_GRCh38/SNP_refs/1000G.snps.b38.vcf
         cosmicREFF=/home/27626/exercises/cancer/human_GRCh38/cosmic/CosmicCodingMuts_chr_sorted.vcf
         GATK=/home/27626/exercises/cancer/programs/GenomeAnalysisTK.jar
-        PICARD=/home/27626/exercises/cancer/progrpicard-2.jar
+        PICARD=/home/27626/exercises/cancer/programs/picard-2.jar
         TRIM_GALORE=/home/27626/exercises/cancer/programs/trim_galore
         outdir=`pwd`
 
 
-### 2.1 [DO NOT RUN] Read quality trimming and FastQC report using [trim_galore](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/).
+#### 1.3 - [DO NOT RUN] Read quality trimming and FastQC report
 
-Next step in which you are going computations is point 3 but we left the code needed for preparation of the data below so that you can use it later in the course project or in your own work should you work with cancer patient DNA sequencing data.
+We do this using [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
+
 
         ### Arguments to be passed to FastQC
         args="'--outdir ${outdir}'"
@@ -77,11 +98,13 @@ Next step in which you are going computations is point 3 but we left the code ne
         $TRIM_GALORE --fastqc --fastqc_args $args --gzip --quality 20 --trim-n --length 50\
         --trim1 --output_dir $outdir --paired $f1t $f2t
 
-Q2: What does --quality 20 argument mean? Get help by running:
+Q2: What does the argument `--quality 20` mean? Get help by running:
         
         $TRIM_GALORE --help
 
-Set up new variables for the newly created files. I assume the validated and filtered files were created in your working directory (for me this is /home/27626/exercises/cancer/ so you can find these files there if you need them).
+Set up new variables for the newly created files. I assume the validated and filtered
+files were created in your working directory (for me this is /home/27626/exercises/cancer/
+so you can find these files there if you need them).
 
         f1n_val=TCRBOA2-N-WEX.read1.fastq.bz2_val_1.fq.gz
         f2n_val=TCRBOA2-N-WEX.read2.fastq.bz2_val_2.fq.gz
@@ -89,23 +112,25 @@ Set up new variables for the newly created files. I assume the validated and fil
         f2t_val=TCRBOA2-T-WEX.read2.fastq.bz2_val_2.fq.gz
 
 
-### 2.2 [DO NOT RUN] Alignment and preprocessing before mutation calling.
+### PART 2. Alignment and additional preprocessing
 
+#### 2.1 - Alignment (PLEASE DO NOT RUN)
 
-2.2.1 Step 1 - (PLEASE DO NOT RUN)
+We use [bwa mem](https://github.com/lh3/bwa) for aligning reads to the genome. 
+We align the tumor sample and normal sample separately.
 
-Use bwa mem for aligning reads. Tumor sample and normal separately.
-
-Importantly, a Read Group ID line (@RG line) needst to be defined by the user. Mutect2 and other programs in the pipeline below depend on information in this line. Here is one way of constructing it. Optionally, it can have more information then provided below. Please see the [SAM format specification](http://www.samformat.info) if you want to know more.
+Importantly, a Read Group ID line (@RG line) must be defined by the user, because Mutect2
+and other programs in the pipeline below depend on information in this line. Here we
+demonstrate one way of adding the @RG line to the resulting BAM file:
 
         ### @RG ID # read group ID, needs to be unique for fastq file due to downstream processing, takes\
-        preferrence when used by some programs
+        preference when used by some programs
         ### @RG SM # sample ID, unique for each tumor and normal sample, not to be confused with patient ID
         ### @RG PL # platform name
         ### @RG LB # library name
         ### @RG PU # Platform unit, needs to be unique for fastq file due to downstream processing, takes\
-        preferrence when used by some programs
-        ### Let's create an @RG line that we will use when runnig bwa mem alinment
+        preference when used by some programs
+        ### Let's create an @RG line that we will use when running bwa mem alinment
         ReadGoupID_N="\"@RG\tID:TCRBOA2-N-WEX\tSM:TCRBOA2-N-WEX\tPL:ILLUMINA\tLB:libN\tPU:TCRBOA2-N-WEX"\"
         ReadGoupID_T="\"@RG\tID:TCRBOA2-T-WEX\tSM:TCRBOA2-T-WEX\tPL:ILLUMINA\tLB:libT\tPU:TCRBOA2-T-WEX"\"
 
@@ -115,13 +140,19 @@ Importantly, a Read Group ID line (@RG line) needst to be defined by the user. M
         bwa mem -M -t 4 -R $ReadGoupID_T $HREFF $f2t_val $f2t_val \
             | samtools view -Sb -@ 1 - > patient2_t.bam
 
-2.2.2 Step 2 - Sort bam files. 
+Optionally, the @RG line can provide additional information; please see the 
+[SAM format specification](http://www.samformat.info) if you want to know more.
+
+#### 2.2 - Sort BAM files 
 
         samtools sort -@ 3 patient2_n.bam -o patient2_n.sorted.bam
         samtools sort -@ 3 patient2_t.bam -o patient2_t.sorted.bam
- 
-2.2.3 Step 3 - Mark duplicates with picard tools MarkDuplicates. 
-Mark PCR duplicates so that they will not introduce false positives and bias in the subsequent analysis.
+
+
+#### 2.3 - Mark duplicates
+
+We use [Picard](https://broadinstitute.github.io/picard/) to mark PCR duplicates so that
+they will not introduce false positives and bias in the subsequent analysis.
 
         mkdir tmp
         java -Xmx5G -Xms1024M  -XX:+UseParallelGC -XX:ParallelGCThreads=6 -jar $PICARD MarkDuplicates\
@@ -132,13 +163,23 @@ Mark PCR duplicates so that they will not introduce false positives and bias in 
             TMP_DIR=./tmp
         
 
-2.2.4 Step 4 - Index bam.
+#### 2.4 - Index the BAM files.
 
         samtools index patient2_n.sorted.dedup.bam
         samtools index patient2_t.sorted.dedup.bam
 
-2.2.5 Step 5 - BaseRecalibrator - Part 1
-Recalibrate base qualities. Each base in each sequence read comes out of sequencer with certain quality score. Depending on machine used for sequrencing these scores are subjected to various sources of systematic technical error. Base quality score recalibration (BQSR) works by applying machine learning to model these errors empirically and adjust the quality scores accordingly. Here is more information on [BSQR](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_bqsr_BaseRecalibrator.php) from authors of the software. 
+
+#### 2.5 - BaseRecalibrator - Part 1
+
+We use [GATK](https://software.broadinstitute.org/gatk/) to recalibrate base quality scores. 
+
+Each base in each sequence read comes out of the sequencer with certain quality score. 
+Depending on the machine used for sequrencing, these scores are subjected to various
+sources of systematic technical error. Base quality score recalibration (BQSR) works by
+applying machine learning to model these errors empirically and adjust the quality scores
+accordingly. 
+
+There is more information on BSQR [here](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_bqsr_BaseRecalibrator.php). 
 
         ### Run Base Recalibrator 1 - parallelize by using -nct option
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK \
@@ -149,7 +190,7 @@ Recalibrate base qualities. Each base in each sequence read comes out of sequenc
             -knownSites $IREFF -o patient2_t.recal.table
       
         
-2.2.6 Step 6 - BaseRecalibrator - Part 2.
+#### 2.6 - BaseRecalibrator - Part 2
 
         ### Run Base Recalibrator 2 - parallelize by using -nct option
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK \
@@ -160,8 +201,9 @@ Recalibrate base qualities. Each base in each sequence read comes out of sequenc
             -knownSites $IREFF -BQSR patient2_t.recal.table -o patient2_t.post_recal_data.table
         
         
-2.2.7 Step 7 - PrintReads.
-Recalibrated reads are collected in a new bam file. After this step, the resulting bam file is ready to be processed with MuTect2 - mutation calling program.
+#### 2.7 - PrintReads
+
+The recalibrated reads are collected in a new BAM file. 
 
         ### Run Base Recalibrator - parallelize by using -nct option
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK\
@@ -171,11 +213,23 @@ Recalibrated reads are collected in a new bam file. After this step, the resulti
             -T PrintReads -nct 4 -R $FREFF -I patient2_t.sorted.dedup.bam -BQSR patient2_t.recal.table \
             -o patient2_t.final.bam
 
+Now, the resulting BAM files are ready to be processed with MuTect2.
 
-## 3. Somatic mutation calling (BAM file -> VCF file)
-Since we do not have time and capacity to run a whole sample during our exercises we will call somatic mutations at chromosome 1 from 50.000.000th to 52.000.000th base pair.
-MuTect2 is a somatic mutation caller developed by Broad Institute. MuTect2 is a somatic SNP and indel caller that combines the DREAM challenge-winning somatic genotyping engine of the original MuTect [(Cibulskis et al., 2013)](http://www.nature.com/nbt/journal/v31/n3/full/nbt.2514.html) with the assembly-based machinery of [HaplotypeCaller](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php) which you have already used in the [genotyping exercise](http://www.cbs.dtu.dk/courses/27626/programme.php). The basic operation of MuTect2 proceeds similarly to that of the HaplotypeCaller but MuTect2 allows varying allelic fraction for each variant. This is necessary because tumors often are hetergeneous (multiclonal), have lower cellularity (purity) than 100%, show gains and losses of parts of the genome. To learn more about Mutect2 follow this link [MuTect2](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php)
-Mutect2 is computationally intensive so it is recommended to parallelize if possible. One way to achieve it is to split processes by chromosomes.
+
+### PART 3. Somatic mutation calling (BAM file -> VCF file)
+
+#### 3.1 - MuTect2
+
+We use [MuTect2][MuTect2], a somatic mutation caller that identifies both SNV and indels.
+
+[MuTect2]: https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php
+
+Mutect2 is computationally intensive so we recommend to parallelize if possible. 
+One way to achieve this is to split processes by chromosomes.
+
+Since we do not have the time and capacity to process the entire genome during our
+exercises we will call somatic mutations on a small part of chromosome 1, 
+from the 50.000.000th to the 52.000.000th base pair.
 
         ### Set chromosome and location:
         CHR_LOC=chr1:50000000-52000000
@@ -188,18 +242,36 @@ Mutect2 is computationally intensive so it is recommended to parallelize if poss
             -I:normal $fbn -o patient2_t.${CHR_LOC}.mutect2.vcf -L $CHR_LOC
         ### To run a whole genome simply do not use the -L option.
 
-Take a look at the VCF file. Unlike HoaplotypeCaller MuTect2 applies a range of filters to each call by default. For a start try to filter mutational calls by selecting those with MuTect "PASS" annotation.
+Take a look at the resulting VCF file. Unlike HaplotypeCaller, MuTect2 applies a range of filters
+to each call by default. 
+
+#### 3.2 - Filter the VCF output
+
+For a start, try to filter mutational calls by selecting those with MuTect "PASS" annotation.
 
         cat patient2_t.${CHR_LOC}.mutect2.vcf | grep PASS
 
 You should see this line:
 "chr1	50973993	rs746646631	C	T	.	PASS	DB;ECNT=1;HCNT=2;MAX_ED=.;MIN_ED=.;NLOD=33.99;TLOD=7.29	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:QSS:REF_F1R2:REF_F2R1	0/1:129,6:0.044:3:3:0.500:3973,169:66:63	0/0:132,0:0.00:0:0:.:4093,0:75:57"
 
-Explanation of each part of the line above is in the header of the VCF file (use "less" command to look at it). Importantly, column starting with 0/0 refers to the normal sample while column beginning with 0/1 refers to the tumor. After genotype (GT) we have allelic depth (AD) which is "129,6" (i.e. 126 and 6 for the reference and mutant allele respectively). Then comes allelic frequency which is a fraction of the mutant allele out of all aligned bases in this position. For more information about MuTect2 output go to [MuTect2](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php).
+A brief explanation of each part of the line above is in the header of the VCF file 
+(use "less" to look at it). Importantly, the column starting with 0/0 refers to the
+normal sample, whereas the column beginning with 0/1 refers to the tumor. 
+After genotype (GT) we have allelic depth (AD) which is "129,6" (i.e. 129 and 6 for
+the reference and mutant allele respectively). Then comes allelic frequency, which is
+a fraction of the mutant allele out of all aligned bases in this position. 
+For more information about the MuTect2 output go to [MuTect2][MuTect2].
 
-Q3: Try to search [dbSNP](https://www.ncbi.nlm.nih.gov/snp) for rs746646631. What gene does it belong to? Is this mutation protein-chainging?
+#### 3.3 - Interpretation of somatic mutations
 
-Go to [cBIO](http://www.cbioportal.org) portal that is collection of large cancer datasets with some functionality. Type the name of the gene that was hit by this mutation in the "Enter Gene Set:" box in the bottom of the page. Press submit. How often is this gene mutated in various cancer types?  
+Q3: Try to search [dbSNP](https://www.ncbi.nlm.nih.gov/snp) for rs746646631. 
+What gene does it belong to? Is this mutation protein-changing?
+
+Go to [cBioPortal](http://www.cbioportal.org), a website that provides tools to analyze
+several large cancer sequencing datasets. Type the name of the gene that was hit by this
+mutation in the "Enter Gene Set:" box in the bottom of the page and press submit. 
+How often is this gene mutated in various cancer types?  
+
 
 ## Inference of tissue of origin
 
