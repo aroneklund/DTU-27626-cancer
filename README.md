@@ -199,7 +199,7 @@ Explanation of each part of the line above is in the header of the VCF file (use
 
 Q3: Try to search [dbSNP](https://www.ncbi.nlm.nih.gov/snp) for rs746646631. What gene does it belong to? Is this mutation protein-chainging?
 
-Go to [cBIO](http://www.cbioportal.org) portal that contains a collection of large cancer datasets and type the name of the gene that was hit by this mutation in the "Enter Gene Set:" box in the bottom of the page. Press submit. How often is this gene mutated in various cancer types?  
+Go to [cBIO](http://www.cbioportal.org) portal that is collection of large cancer datasets with some functionality. Type the name of the gene that was hit by this mutation in the "Enter Gene Set:" box in the bottom of the page. Press submit. How often is this gene mutated in various cancer types?  
 
 ## Inference of tissue of origin
 
