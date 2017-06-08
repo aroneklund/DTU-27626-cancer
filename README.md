@@ -111,53 +111,53 @@ Importantly, a Read Group ID line (@RG line) needst to be defined by the user. M
 
         ### Run bwa mem
         bwa mem -M -t 4 -R $ReadGoupID_N $HREFF $f1n_val $f2n_val \
-            | samtools view -Sb -@ 1 - > patient3_n.bam 
+            | samtools view -Sb -@ 1 - > patient2_n.bam 
         bwa mem -M -t 4 -R $ReadGoupID_T $HREFF $f2t_val $f2t_val \
-            | samtools view -Sb -@ 1 - > patient3_t.bam
+            | samtools view -Sb -@ 1 - > patient2_t.bam
 
 2.2.2 Step 2 - Sort bam files. 
 
-        samtools sort -@ 3 patient3_n.bam -o patient3_n.sorted.bam
-        samtools sort -@ 3 patient3_t.bam -o patient3_t.sorted.bam
+        samtools sort -@ 3 patient2_n.bam -o patient2_n.sorted.bam
+        samtools sort -@ 3 patient2_t.bam -o patient2_t.sorted.bam
  
 2.2.3 Step 3 - Mark duplicates with picard tools MarkDuplicates. 
 Mark PCR duplicates so that they will not introduce false positives and bias in the subsequent analysis.
 
         mkdir tmp
         java -Xmx5G -Xms1024M  -XX:+UseParallelGC -XX:ParallelGCThreads=6 -jar $PICARD MarkDuplicates\
-            INPUT=patient3_n.sorted.bam OUTPUT=patient3_n.sorted.dedup.bam METRICS_FILE=patient3_n.metrics.txt \
+            INPUT=patient2_n.sorted.bam OUTPUT=patient2_n.sorted.dedup.bam METRICS_FILE=patient2_n.metrics.txt \
             TMP_DIR=./tmp
         java -Xmx10G -Xms1024M  -XX:+UseParallelGC -XX:ParallelGCThreads=8 -jar $PICARD MarkDuplicates\
-            INPUT=patient3_t.sorted.bam OUTPUT=patient3_t.sorted.dedup.bam METRICS_FILE=patient3_t.metrics.txt \
+            INPUT=patient2_t.sorted.bam OUTPUT=patient2_t.sorted.dedup.bam METRICS_FILE=patient2_t.metrics.txt \
             TMP_DIR=./tmp
         
 
 2.2.4 Step 4 - Index bam.
 
-        samtools index patient3_n.sorted.dedup.bam
-        samtools index patient3_t.sorted.dedup.bam
+        samtools index patient2_n.sorted.dedup.bam
+        samtools index patient2_t.sorted.dedup.bam
 
 2.2.5 Step 5 - BaseRecalibrator - Part 1
 Recalibrate base qualities. Each base in each sequence read comes out of sequencer with certain quality score. Depending on machine used for sequrencing these scores are subjected to various sources of systematic technical error. Base quality score recalibration (BQSR) works by applying machine learning to model these errors empirically and adjust the quality scores accordingly. Here is more information on [BSQR](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_bqsr_BaseRecalibrator.php) from authors of the software. 
 
         ### Run Base Recalibrator 1 - parallelize by using -nct option
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK \
-            -T BaseRecalibrator -nct 4 -R $FREFF -I patient3_n.sorted.dedup.bam -knownSites $SREFF \
-            -knownSites $IREFF -o patient3_n.recal.table
+            -T BaseRecalibrator -nct 4 -R $FREFF -I patient2_n.sorted.dedup.bam -knownSites $SREFF \
+            -knownSites $IREFF -o patient2_n.recal.table
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK \
-            -T BaseRecalibrator -nct 4 -R $FREFF -I patient3_t.sorted.dedup.bam -knownSites $SREFF \
-            -knownSites $IREFF -o patient3_t.recal.table
+            -T BaseRecalibrator -nct 4 -R $FREFF -I patient2_t.sorted.dedup.bam -knownSites $SREFF \
+            -knownSites $IREFF -o patient2_t.recal.table
       
         
 2.2.6 Step 6 - BaseRecalibrator - Part 2.
 
         ### Run Base Recalibrator 2 - parallelize by using -nct option
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK \
-            -T BaseRecalibrator -nct 4 -R $FREFF -I patient3_n.sorted.dedup.bam -knownSites $SREFF \
-            -knownSites $IREFF -BQSR patient3_n.recal.table -o patient3_n.post_recal_data.table
+            -T BaseRecalibrator -nct 4 -R $FREFF -I patient2_n.sorted.dedup.bam -knownSites $SREFF \
+            -knownSites $IREFF -BQSR patient2_n.recal.table -o patient2_n.post_recal_data.table
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK \
-            -T BaseRecalibrator -nct 4 -R $FREFF -I patient3_t.sorted.dedup.bam -knownSites $SREFF \
-            -knownSites $IREFF -BQSR patient3_t.recal.table -o patient3_t.post_recal_data.table
+            -T BaseRecalibrator -nct 4 -R $FREFF -I patient2_t.sorted.dedup.bam -knownSites $SREFF \
+            -knownSites $IREFF -BQSR patient2_t.recal.table -o patient2_t.post_recal_data.table
         
         
 2.2.7 Step 7 - PrintReads.
@@ -165,28 +165,41 @@ Recalibrated reads are collected in a new bam file. After this step, the resulti
 
         ### Run Base Recalibrator - parallelize by using -nct option
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK\
-            -T PrintReads -nct 4 -R $FREFF -I patient3_n.sorted.dedup.bam -BQSR patient3_n.recal.table \
-            -o patient_3_n.final.bam
+            -T PrintReads -nct 4 -R $FREFF -I patient2_n.sorted.dedup.bam -BQSR patient2_n.recal.table \
+            -o patient2_n.final.bam
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK \
-            -T PrintReads -nct 4 -R $FREFF -I patient3_t.sorted.dedup.bam -BQSR patient3_t.recal.table \
-            -o patient_3_t.final.bam
+            -T PrintReads -nct 4 -R $FREFF -I patient2_t.sorted.dedup.bam -BQSR patient2_t.recal.table \
+            -o patient2_t.final.bam
 
 
 ## 3. Somatic mutation calling (BAM file -> VCF file)
-Since we do not have time and capacity to run a whole sample during our exercises we will call somatic mutations at chromosome 1 from 1.000.000th to 2.000.000th base pair.
+Since we do not have time and capacity to run a whole sample during our exercises we will call somatic mutations at chromosome 1 from 50.000.000th to 52.000.000th base pair.
 MuTect2 is a somatic mutation caller developed by Broad Institute. MuTect2 is a somatic SNP and indel caller that combines the DREAM challenge-winning somatic genotyping engine of the original MuTect [(Cibulskis et al., 2013)](http://www.nature.com/nbt/journal/v31/n3/full/nbt.2514.html) with the assembly-based machinery of [HaplotypeCaller](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php) which you have already used in the [genotyping exercise](http://www.cbs.dtu.dk/courses/27626/programme.php). The basic operation of MuTect2 proceeds similarly to that of the HaplotypeCaller but MuTect2 allows varying allelic fraction for each variant. This is necessary because tumors often are hetergeneous (multiclonal), have lower cellularity (purity) than 100%, show gains and losses of parts of the genome. To learn more about Mutect2 follow this link [MuTect2](https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_gatk_tools_walkers_cancer_m2_MuTect2.php)
 Mutect2 is computationally intensive so it is recommended to parallelize if possible. One way to achieve it is to split processes by chromosomes.
 
         ### Set chromosome and location:
-        CHR_LOC=chr1:1000000-2000000
+        CHR_LOC=chr1:50000000-52000000
         ### Use pre-processed bam files:
-        fbn=/home/27626/exercises/cancer/patient_3_n.final.bam
-        fbt=/home/27626/exercises/cancer/patient_3_t.final.bam
+        fbn=/home/27626/exercises/cancer/patient2_n.final.bam
+        fbt=/home/27626/exercises/cancer/patient2_t.final.bam
         ### Run Mutect2
         time java -Xmx4G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 -jar $GATK -T MuTect2 \
             -R $FREFF --dbsnp $SREFF --cosmic $cosmicREFF -I:tumor $fbt \
-            -I:normal $fbn -o patient_3_t.${CHR_LOC}.mutect2.vcf -L $CHR_LOC
+            -I:normal $fbn -o patient2_t.${CHR_LOC}.mutect2.vcf -L $CHR_LOC
         ### To run a whole genome simply do not use the -L option.
+
+Take a look at the VCF file. Unlike HoaplotypeCaller MuTect2 applies a range of filters to each call by default. For a start try to filter mutational calls by selecting those with MuTect "PASS" annotation.
+
+        cat patient2_t.${CHR_LOC}.mutect2.vcf | grep PASS
+
+You should see this line:
+"chr1	50973993	rs746646631	C	T	.	PASS	DB;ECNT=1;HCNT=2;MAX_ED=.;MIN_ED=.;NLOD=33.99;TLOD=7.29	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:QSS:REF_F1R2:REF_F2R1	0/1:129,6:0.044:3:3:0.500:3973,169:66:63	0/0:132,0:0.00:0:0:.:4093,0:75:57"
+
+Explanation of each part of the line above is in the header of the file (use less command to look at it). Importantly, the column starting with 0/0 refers to the normal sample while the one beginning with 0/1 refers to the tumor. After genotype (GT) we have allelic depth (AD) hich is "129,6" (i.e. 126 and 6 for the reference and mutant allele respectively). Then comes allelic frequency which is a fraction of the mutant allele out of all aligned bases in this position.
+
+Q3: Try to search [dbSNP](https://www.ncbi.nlm.nih.gov/snp) for rs746646631. What gene does it belong to? Is this mutation protein-chainging?
+
+Go to [cBIO](http://www.cbioportal.org) portal that contains a collection of large cancer datasets and type the name of the gene that was hit by this mutation in the "Enter Gene Set:" box in the bottom of the page. Press submit. How often is this gene mutated in various cancer types?  
 
 ## Inference of tissue of origin
 
