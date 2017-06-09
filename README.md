@@ -322,9 +322,43 @@ Make sure to specify that this VCF was generated using GRCh38 coordinates.
 What tissue does TumorTracer predict?  Is it a confident prediction?
 
 
-## Inference of copy number profile
+## PART 5. Inference of copy number profile
+Sequenza is an R package that can be used to infer the copy number profile of a tumor specimen. The input is a (exome or whole-genome) NGS data from a tumor specimen and a matched normal specimen.
+The tool has a home page here: http://www.cbs.dtu.dk/biotools/sequenza/ (with links to the publication, source code, R package, help forums, etc) 
+Sequenza has already been installed to the server, so you just only need to run R, and load the package
 
-        ### .....
+        R
+        library(sequenza)
+
+Normally, several steps are required to prepare the data. The raw reads must be aligned to the genome, and then the BAM file must be processed by a python script (included in the R package) that extracts the relevant information into a format suitable for analyis in R. This takes more time and computation power than is reasonable for an exercise, so we will skip ahead to the fun part.
+
+If you need to preprocess your own data, please see the instructions in the Sequenza manual, which you can obtain by typing (in R) 
+        
+        vignette("sequenza")
+####  5.1 Run sequenza
+We are going to work on a lung adenocarcinoma specimen (WGS), derived from a 55 years old female donor, who is still alive and symtpom free after a successful resection. Let's start by loading the data  into R:
+
+        load("/home/27626/exercises/cancer/LUADsample_seqz.RData")
+
+This object (seqzDF) is the output of the sequenza.extract() function. Feel free to check its contents (str(seqzDF))! Now we can fit a model to this data. It will probably keep your computer busy for a few minutes.
+
+        seqz.fit   <- sequenza.fit(seqzDF)
+
+Finally, we create the output files. This creates a subdirectory in your working folder called "sequenza-luad" and fills it with 13 files. 
+
+        sequenza.results(seqzDF, seqz.fit, out.dir = "sequenza-luad", sample.id = "luad55")
+
+####  5.2 Run sequenza
+
+Check out the files in the "sequenza-luad" directory. (If you are not sure where this is, type "getwd()" in R)
+
+Questions:
+
+**Q1:** Does the model fit seem reasonable? How do the "alternative" fits look, visually?
+
+**Q2:** Where in the genome do you see the largest copy number?
+
+**Q3:** Do you see any evidence of loss of heterozygosity? Where? (give an example or two)
 
 ## Data visualization
 
