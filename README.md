@@ -48,11 +48,13 @@ The raw data files are located on the server at `/home/27626/exercises/cancer`
 
 ## Somatic point mutation exercise
 
-**Important**: since the full procedure takes a long time, we will **not** ask you
-to perform the full alignment and full mutation calling. However, for reference, 
-we provide the code needed for the full analysis. Thus, you can use this code later
-in the course project or in your own work should you work with cancer patient DNA
-sequencing data.
+**IMPORTANT IMPORTANT IMPORTANT** - Since the full procedure takes a long time, 
+we will **not** ask you to perform the full alignment and full mutation calling. 
+However, for reference, we provide the code needed for the full analysis. 
+Thus, you can use this code later in the course project or in your own work, 
+should you work with cancer patient DNA sequencing data.
+
+The parts where you should actually run the code include: 1.1, 1.2, 3, and 4
 
 
 ### PART 1. Raw reads: inspection, QC, cleanup
@@ -84,7 +86,7 @@ What type would you prefer for cancer DNA sequencing, and why?
         outdir=`pwd`
 
 
-#### 1.3 - [DO NOT RUN] Read quality trimming and FastQC report
+#### 1.3 - Read quality trimming and FastQC report (DO NOT RUN)
 
 We do this using [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
 
@@ -112,9 +114,9 @@ so you can find these files there if you need them).
         f2t_val=TCRBOA2-T-WEX.read2.fastq.bz2_val_2.fq.gz
 
 
-### PART 2. Alignment and additional preprocessing
+### PART 2. Alignment and additional preprocessing (DO NOT RUN)
 
-#### 2.1 - Alignment (PLEASE DO NOT RUN)
+#### 2.1 - Alignment (DO NOT RUN)
 
 We use [bwa mem](https://github.com/lh3/bwa) for aligning reads to the genome. 
 We align the tumor sample and normal sample separately.
@@ -130,7 +132,7 @@ demonstrate one way of adding the @RG line to the resulting BAM file:
         ### @RG LB # library name
         ### @RG PU # Platform unit, needs to be unique for fastq file due to downstream processing, takes\
         preference when used by some programs
-        ### Let's create an @RG line that we will use when running bwa mem alinment
+        ### Let's create an @RG line that we will use when running bwa mem alignment
         ReadGoupID_N="\"@RG\tID:TCRBOA2-N-WEX\tSM:TCRBOA2-N-WEX\tPL:ILLUMINA\tLB:libN\tPU:TCRBOA2-N-WEX"\"
         ReadGoupID_T="\"@RG\tID:TCRBOA2-T-WEX\tSM:TCRBOA2-T-WEX\tPL:ILLUMINA\tLB:libT\tPU:TCRBOA2-T-WEX"\"
 
@@ -143,13 +145,13 @@ demonstrate one way of adding the @RG line to the resulting BAM file:
 Optionally, the @RG line can provide additional information; please see the 
 [SAM format specification](http://www.samformat.info) if you want to know more.
 
-#### 2.2 - Sort BAM files 
+#### 2.2 - Sort BAM files (DO NOT RUN)
 
         samtools sort -@ 3 patient2_n.bam -o patient2_n.sorted.bam
         samtools sort -@ 3 patient2_t.bam -o patient2_t.sorted.bam
 
 
-#### 2.3 - Mark duplicates
+#### 2.3 - Mark duplicates (DO NOT RUN)
 
 We use [Picard](https://broadinstitute.github.io/picard/) to mark PCR duplicates so that
 they will not introduce false positives and bias in the subsequent analysis.
@@ -163,18 +165,18 @@ they will not introduce false positives and bias in the subsequent analysis.
             TMP_DIR=./tmp
         
 
-#### 2.4 - Index the BAM files.
+#### 2.4 - Index the BAM files (DO NOT RUN)
 
         samtools index patient2_n.sorted.dedup.bam
         samtools index patient2_t.sorted.dedup.bam
 
 
-#### 2.5 - BaseRecalibrator - Part 1
+#### 2.5 - BaseRecalibrator - Part 1 (DO NOT RUN)
 
 We use [GATK](https://software.broadinstitute.org/gatk/) to recalibrate base quality scores. 
 
-Each base in each sequence read comes out of the sequencer with certain quality score. 
-Depending on the machine used for sequrencing, these scores are subjected to various
+Each base in each sequencing read comes out of the sequencer with an individual quality score. 
+Depending on the machine used for sequencing, these scores are subject to various
 sources of systematic technical error. Base quality score recalibration (BQSR) works by
 applying machine learning to model these errors empirically and adjust the quality scores
 accordingly. 
@@ -190,7 +192,7 @@ There is more information on BSQR [here](https://software.broadinstitute.org/gat
             -knownSites $IREFF -o patient2_t.recal.table
       
         
-#### 2.6 - BaseRecalibrator - Part 2
+#### 2.6 - BaseRecalibrator - Part 2 (DO NOT RUN)
 
         ### Run Base Recalibrator 2 - parallelize by using -nct option
         java -Xmx10G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=4 -jar $GATK \
@@ -201,7 +203,7 @@ There is more information on BSQR [here](https://software.broadinstitute.org/gat
             -knownSites $IREFF -BQSR patient2_t.recal.table -o patient2_t.post_recal_data.table
         
         
-#### 2.7 - PrintReads
+#### 2.7 - PrintReads (DO NOT RUN)
 
 The recalibrated reads are collected in a new BAM file. 
 
@@ -228,7 +230,7 @@ Mutect2 is computationally intensive so we recommend to parallelize if possible.
 One way to achieve this is to split processes by chromosomes.
 
 Since we do not have the time and capacity to process the entire genome during our
-exercises we will call somatic mutations on a small part of chromosome 1, 
+exercises, we will call somatic mutations on a small part of chromosome 1, 
 from the 50.000.000th to the 52.000.000th base pair.
 
         ### Set chromosome and location:
@@ -240,7 +242,7 @@ from the 50.000.000th to the 52.000.000th base pair.
         time java -Xmx4G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 -jar $GATK -T MuTect2 \
             -R $FREFF --dbsnp $SREFF --cosmic $cosmicREFF -I:tumor $fbt \
             -I:normal $fbn -o patient2_t.${CHR_LOC}.mutect2.vcf -L $CHR_LOC
-        ### To run a whole genome simply do not use the -L option.
+        ### To process the whole genome, simply omit the -L option.
 
 Take a look at the resulting VCF file. Unlike HaplotypeCaller, MuTect2 applies a range of filters
 to each call by default. 
@@ -262,7 +264,10 @@ the reference and mutant allele respectively). Then comes allelic frequency, whi
 a fraction of the mutant allele out of all aligned bases in this position. 
 For more information about the MuTect2 output go to [MuTect2][MuTect2].
 
-#### 3.3 - Interpretation of somatic mutations
+
+### PART 4. Interpretation of resuling somatic mutations
+
+#### 4.1 - Interpretation of somatic mutations
 
 Q3: Try to search [dbSNP](https://www.ncbi.nlm.nih.gov/snp) for rs746646631. 
 What gene does it belong to? Is this mutation protein-changing?
@@ -273,9 +278,38 @@ mutation in the "Enter Gene Set:" box in the bottom of the page and press submit
 How often is this gene mutated in various cancer types?  
 
 
-## Inference of tissue of origin
+#### 4.2 - More interpretation of somatic mutations
 
-        ### .....
+So far you have processed and analyzed only a small section of chromosome 1.
+
+Now, let's analyze a bigger piece of the genome.  
+Pick your favorite chromosome and find the
+corresponding VCF file on the server.  For example, if you choose chromosome 7, you
+would use this file:
+
+        /home/27626/exercises/cancer/patient2.chr7.mutect2.vcf
+
+Hint: your results will be more interesting if you pick chromosome 
+6, 7, 13, 15, 19, 20, or 22!
+
+Filter the VCF to retain only the lines marked as "PASS".  
+
+Submit the *filtered* VCF to the [VEP website](http://www.ensembl.org/Tools/VEP)
+using default settings.
+When the results become available, look in the "Somatic status" column. Are there
+any known cancer mutations?  
+If you find a known cancer mutation, find its COSMIC identifier 
+(COSM######, e.g. COSM4597270) in the "existing variant" column.  
+Search for your COSMIC identifier in the
+[COSMIC database](http://cancer.sanger.ac.uk/cosmic).
+In which tissues is this mutation found?
+
+
+#### 4.3 - Inference of tissue of origin
+
+
+
+
 
 ## Inference of copy number profile
 
