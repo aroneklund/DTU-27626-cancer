@@ -79,6 +79,7 @@ What type would you prefer for cancer DNA sequencing, and why?
         FREFF=/home/27626/exercises/cancer/human_GRCh38/GCA_000001405.15_GRCh38_full_analysis_set.fa 
         IREFF=/home/27626/exercises/cancer/human_GRCh38/Indel_refs/mills_gold.b38.vcf
         SREFF=/home/27626/exercises/cancer/human_GRCh38/SNP_refs/1000G.snps.b38.vcf
+        dbsnp_ALL=/home/27626/exercises/cancer/human_GRCh38/SNP_refs/dbsnp/All_20160527_chr.vcf
         cosmicREFF=/home/27626/exercises/cancer/human_GRCh38/cosmic/CosmicCodingMuts_chr_sorted.vcf
         GATK=/home/27626/exercises/cancer/programs/GenomeAnalysisTK.jar
         PICARD=/home/27626/exercises/cancer/programs/picard-2.jar
@@ -240,7 +241,7 @@ from the 50.000.000th to the 52.000.000th base pair.
         fbt=/home/27626/exercises/cancer/patient2_t.final.bam
         ### Run Mutect2
         time java -Xmx4G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 -jar $GATK -T MuTect2 \
-            -R $FREFF --dbsnp $SREFF --cosmic $cosmicREFF -I:tumor $fbt \
+            -R $FREFF --dbsnp $dbsnp_ALL --cosmic $cosmicREFF -I:tumor $fbt \
             -I:normal $fbn -o patient2_t.${CHR_LOC}.mutect2.vcf -L $CHR_LOC
         ### To process the whole genome, simply omit the -L option.
 
