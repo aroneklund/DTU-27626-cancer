@@ -3,11 +3,6 @@ Cancer-related exercises for [DTU course 27626](http://www.cbs.dtu.dk/courses/27
 
 Marcin Krzystanek and Aron Eklund
 
-**WORK IN PROGRESS**
-
-**NOT FINISHED YET**
-
-
 These exercises will guide you through all steps starting from raw data (FASTQ files)
 and resulting in a list of somatic point mutations and a copy number profile.
 Also, we will perform some analysis (in R) of the resulting data.
@@ -350,7 +345,7 @@ Finally, we create the output files. This creates a subdirectory in your working
 
 ####  5.2 Run sequenza
 
-Check out the files in the "sequenza-luad" directory. (If you are not sure where this is, type "getwd()" in R)
+Check out the files (the pdfs, using evince) in the "sequenza-luad" directory. (If you are not sure where this is, type "getwd()" in R)
 
 Questions:
 
