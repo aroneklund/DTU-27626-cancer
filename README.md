@@ -283,12 +283,14 @@ Pick your favorite chromosome and find the
 corresponding VCF file on the server.  For example, if you choose chromosome 7, you
 would use this file:
 
-        /home/27626/exercises/cancer/patient2.chr7.mutect2.vcf
+        ls /home/27626/exercises/cancer/patient2.chr7.mutect2.vcf
 
 Hint: your results will be more interesting if you pick chromosome 
 6, 7, 13, 15, 19, 20, or 22!
 
 Filter the VCF to retain only the lines marked as "PASS".  
+
+        egrep "PASS" /home/27626/exercises/cancer/patient2.chr7.mutect2.vcf > filtered.chr7.vcf
 
 Submit the *filtered* VCF to the [VEP website](http://www.ensembl.org/Tools/VEP)
 using default settings.
@@ -306,9 +308,11 @@ In which tissues is this mutation found?
 Next we'll do some analysis on a VCF file containing somatic mutations found throughout
 the entire genome:
 
-        /home/27626/exercises/cancer/patient2_t.mutect2.vcf
+        ls /home/27626/exercises/cancer/patient2_t.mutect2.vcf
 
-Filter this VCF file to retain only the lines marked as "PASS".   
+Filter this VCF file to retain only the lines marked as "PASS". Retain the header by including also lines with "#".
+        
+        egrep "PASS|#" /home/27626/exercises/cancer/patient2_t.mutect2.vcf > filtered.patient2_t.mutect2.vcf
 
 Submit the filtered VCF to the
 [TumorTracer server](http://www.cbs.dtu.dk/services/TumorTracer/).
