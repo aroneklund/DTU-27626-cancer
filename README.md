@@ -283,7 +283,7 @@ How often is this gene mutated in various cancer types?
 
 So far you have processed and analyzed only a small section of chromosome 1.
 
-Now, let's analyze a bigger piece of the genome.  
+Now, let's analyze a bigger piece of the genome.
 Pick your favorite chromosome and find the
 corresponding VCF file on the server.  For example, if you choose chromosome 7, you
 would use this file:
@@ -298,9 +298,9 @@ Filter the VCF to retain only the lines marked as "PASS".
 Submit the *filtered* VCF to the [VEP website](http://www.ensembl.org/Tools/VEP)
 using default settings.
 When the results become available, look in the "Somatic status" column. Are there
-any known cancer mutations?  
+any known cancer mutations?
 If you find a known cancer mutation, find its COSMIC identifier 
-(COSM######, e.g. COSM4597270) in the "existing variant" column.  
+(COSM######, e.g. COSM4597270) in the "existing variant" column.
 Search for your COSMIC identifier in the
 [COSMIC database](http://cancer.sanger.ac.uk/cosmic).
 In which tissues is this mutation found?
@@ -308,8 +308,18 @@ In which tissues is this mutation found?
 
 #### 4.3 - Inference of tissue of origin
 
+Next we'll do some analysis on a VCF file containing somatic mutations found throughout
+the entire genome:
 
+        /home/27626/exercises/cancer/patient2_t.mutect2.vcf
 
+Filter this VCF file to retain only the lines marked as "PASS".   
+
+Submit the filtered VCF to the
+[TumorTracer server](http://www.cbs.dtu.dk/services/TumorTracer/).
+Make sure to specify that this VCF was generated using GRCh38 coordinates.
+
+What tissue does TumorTracer predict?  Is it a confident prediction?
 
 
 ## Inference of copy number profile
