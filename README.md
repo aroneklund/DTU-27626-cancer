@@ -295,7 +295,7 @@ Filter the VCF to retain only the lines marked as "PASS".
         egrep "PASS" /home/27626/exercises/cancer/patient2.chr7.mutect2.vcf > filtered.chr7.vcf
 
 Submit the *filtered* VCF to the [VEP website](http://www.ensembl.org/Tools/VEP)
-using default settings.
+using default settings. If necessary, use *scp* command to download the vcf file to your computer.
 When the results become available, look in the "Somatic status" column. Are there
 any known cancer mutations?
 If you find a known cancer mutation, find its COSMIC identifier 
