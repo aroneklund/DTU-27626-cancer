@@ -229,13 +229,15 @@ Since we do not have the time and capacity to process the entire genome during o
 exercises, we will call somatic mutations on a small part of chromosome 1, 
 from the 50.000.000th to the 52.000.000th base pair.
 
+You will not be able to save mutect output in */home/27626/exercises/cancer/* directory. Make sure you work in your own directory (i.e. your home directory or other directory in which you have rights to write files). 
+
         ### Set chromosome and location:
         CHR_LOC=chr1:50000000-52000000
         ### Use pre-processed bam files:
         fbn=/home/27626/exercises/cancer/patient2_n.final.bam
         fbt=/home/27626/exercises/cancer/patient2_t.final.bam
         ### Run Mutect2
-        time java -Xmx4G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 -jar $GATK -T MuTect2 \
+        java -Xmx4G -Xms1024M -XX:+UseParallelGC -XX:ParallelGCThreads=1 -jar $GATK -T MuTect2 \
             -R $FREFF --dbsnp $dbsnp_ALL --cosmic $cosmicREFF -I:tumor $fbt \
             -I:normal $fbn -o patient2_t.${CHR_LOC}.mutect2.vcf -L $CHR_LOC
         ### To process the whole genome, simply omit the -L option.
