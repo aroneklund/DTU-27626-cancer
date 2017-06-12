@@ -139,7 +139,7 @@ demonstrate one way of adding the @RG line to the resulting BAM file:
             | samtools view -Sb -@ 1 - > patient2_t.bam
 
 Optionally, the @RG line can provide additional information; please see the 
-[SAM format specification](http://www.samformat.info) if you want to know more.
+[SAM format specification](http://www.samformat.info) as well as [samtools webpage](http://samtools.sourceforge.net) if you want to know more.
 
 #### 2.2 - Sort BAM files (DO NOT RUN)
 
