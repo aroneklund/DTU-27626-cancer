@@ -229,8 +229,6 @@ Since we do not have the time and capacity to process the entire genome during o
 exercises, we will call somatic mutations on a small part of chromosome 1, 
 from the 50.000.000th to the 52.000.000th base pair.
 
-You will not be able to save mutect output in */home/27626/exercises/cancer/* directory. Make sure you work in your own directory (i.e. your home directory or other directory in which you have rights to write files). 
-
         ### Set chromosome and location:
         CHR_LOC=chr1:50000000-52000000
         ### Use pre-processed bam files:
@@ -242,8 +240,8 @@ You will not be able to save mutect output in */home/27626/exercises/cancer/* di
             -I:normal $fbn -o patient2_t.${CHR_LOC}.mutect2.vcf -L $CHR_LOC
         ### To process the whole genome, simply omit the -L option.
 
-Take a look at the resulting VCF file. Unlike HaplotypeCaller, MuTect2 applies a range of filters
-to each call by default. 
+Take a look at the resulting VCF file. Unlike HaplotypeCaller, MuTect2 applies a
+range of filters to each call by default. 
 
 #### 3.2 - Filter the VCF output
 
@@ -263,7 +261,7 @@ a fraction of the mutant allele out of all aligned bases in this position.
 For more information about the MuTect2 output go to [MuTect2][MuTect2].
 
 
-### PART 4. Interpretation of resuling somatic mutations
+### PART 4. Interpretation of the resulting somatic mutations
 
 #### 4.1 - Interpretation of somatic mutations
 
@@ -280,22 +278,21 @@ How often is this gene mutated in various cancer types?
 
 So far you have processed and analyzed only a small section of chromosome 1.
 
-Now, let's analyze a bigger piece of the genome.
-Pick your favorite chromosome and find the
-corresponding VCF file on the server.  For example, if you choose chromosome 7, you
-would use this file:
+Now, let's analyze a bigger piece of the genome. Pick your favorite chromosome and
+find the corresponding VCF file on the server.  For example, if you choose
+chromosome 7, you would use this file:
 
         ls /home/27626/exercises/cancer/patient2.chr7.mutect2.vcf
 
 Hint: your results will be more interesting if you pick chromosome 
-6, 7, 13, 15, 19, 20, or 22!
+6, 13, 15, 17, 19, 20, 22, or X!
 
 Filter the VCF to retain only the lines marked as "PASS".  
 
-        egrep "PASS" /home/27626/exercises/cancer/patient2.chr7.mutect2.vcf > filtered.chr7.vcf
+        grep "PASS" /home/27626/exercises/cancer/patient2.chr7.mutect2.vcf > filtered.chr7.vcf
 
-Submit the *filtered* VCF to the [VEP website](http://www.ensembl.org/Tools/VEP)
-using default settings. If necessary, use *scp* command to download the vcf file to your computer.
+Download the *filtered* VCF to your own computer and submit it to the 
+[VEP website](http://www.ensembl.org/Tools/VEP) using default settings. 
 When the results become available, look in the "Somatic status" column. Are there
 any known cancer mutations?
 If you find a known cancer mutation, find its COSMIC identifier 
@@ -312,9 +309,11 @@ the entire genome:
 
         ls /home/27626/exercises/cancer/patient2_t.mutect2.vcf
 
-Filter this VCF file to retain only the lines marked as "PASS". Retain the header by including also lines with "#".
+Unlike VEP, TumorTracer requires VCF files to have the header information.
+Thus, we will filter this VCF file to retain: 1) header lines (which begin with "#"),
+and 2) data lines with a PASS call.
         
-        egrep "PASS|#" /home/27626/exercises/cancer/patient2_t.mutect2.vcf > filtered.patient2_t.mutect2.vcf
+        grep -E "^#|PASS" /home/27626/exercises/cancer/patient2_t.mutect2.vcf > filtered.patient2_t.mutect2.vcf
 
 Submit the filtered VCF to the
 [TumorTracer server](http://www.cbs.dtu.dk/services/TumorTracer/).
@@ -324,34 +323,56 @@ What tissue does TumorTracer predict?  Is it a confident prediction?
 
 
 ## PART 5. Inference of copy number profile
-Sequenza is an R package that can be used to infer the copy number profile of a tumor specimen. The input is a (exome or whole-genome) NGS data from a tumor specimen and a matched normal specimen.
-The tool has a home page here: http://www.cbs.dtu.dk/biotools/sequenza/ (with links to the publication, source code, R package, help forums, etc) 
-Sequenza has already been installed to the server, so you just only need to run R, and load the package
+
+Sequenza is an R package that can be used to infer the copy number profile of a tumor
+specimen. The input is (exome or whole-genome) NGS data from a tumor specimen and a
+matched normal specimen.
+
+Links to the Sequenza publication, source code, R package, help forums, etc. can be
+found on the [Sequenza home page](http://www.cbs.dtu.dk/biotools/sequenza/).
+
+Sequenza has already been installed on the course server, so you first need to start R, 
+and then load the package:
 
         R
         library(sequenza)
 
-Normally, several steps are required to prepare the data. The raw reads must be aligned to the genome, and then the BAM file must be processed by a python script (included in the R package) that extracts the relevant information into a format suitable for analyis in R. This takes more time and computation power than is reasonable for an exercise, so we will skip ahead to the fun part.
+Normally, several steps are required to prepare the data. The raw reads must be aligned
+to the genome, and then the BAM file must be processed by a python script (included in
+the R package) that extracts the relevant information into a format suitable for analyis
+in R. This takes more time and computation power than is reasonable for an exercise,
+so we will skip ahead to the fun part.
 
-If you need to preprocess your own data, please see the instructions in the Sequenza manual, which you can obtain by typing (in R) 
+If you need to preprocess your own data, please see the instructions in the Sequenza
+manual, which you can obtain by typing (in R):
         
         vignette("sequenza")
+        
 ####  5.1 Run sequenza
-We are going to work on a lung adenocarcinoma specimen (WGS), derived from a 55 years old female donor, who is still alive and symtpom free after a successful resection. Let's start by loading the data  into R:
+
+We are going to work on a lung adenocarcinoma specimen (WGS), derived from a
+55-year-old female donor, who is still alive and symptom free after a successful
+resection. Let's start by loading the data into R:
 
         load("/home/27626/exercises/cancer/LUADsample_seqz.RData")
 
-This object (seqzDF) is the output of the sequenza.extract() function. Feel free to check its contents (str(seqzDF))! Now we can fit a model to this data. It will probably keep your computer busy for a few minutes.
+This object (seqzDF) is the output of the `sequenza.extract()` function.
+Feel free to check its contents (`str(seqzDF)`)! Now we can fit a model to this data.
+It will probably keep your computer busy for a few minutes.
 
         seqz.fit   <- sequenza.fit(seqzDF)
 
-Finally, we create the output files. This creates a subdirectory in your working folder called "sequenza-luad" and fills it with 13 files. 
+Finally, we create the output files. This creates a subdirectory in your working folder 
+called "sequenza-luad" and fills it with 13 files. 
 
         sequenza.results(seqzDF, seqz.fit, out.dir = "sequenza-luad", sample.id = "luad55")
 
-####  5.2 Run sequenza
+####  5.2 Interpretation of sequenza results
 
-Check out the files (the pdfs, using evince) in the "sequenza-luad" directory. (If you are not sure where this is, type "getwd()" in R)
+Check out the files in the "sequenza-luad" directory. (If you are not sure where
+this directory is, type `getwd()` in R). You can view the PDFs directly from the server
+using `evince`, but it often works better to download the files to your local machine
+and view them there.
 
 Questions:
 
@@ -360,8 +381,4 @@ Questions:
 **Q2:** Where in the genome do you see the largest copy number?
 
 **Q3:** Do you see any evidence of loss of heterozygosity? Where? (give an example or two)
-
-## Data visualization
-
-        ### .....
 
